@@ -66,7 +66,7 @@ From your terminal (within project root directory):
 **On Windows (PowerShell):**
 
 ```powershell
-./run.ps1
+.\run.ps1
 ```
 
 **On macOS/Linux (bash):**
