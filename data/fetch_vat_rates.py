@@ -29,7 +29,7 @@ def fetch_vat_rates(date: str) -> Dict[str, float]:
         if entry['type'] == 'STANDARD' and entry['rate']['type'] == 'DEFAULT':
             if entry['memberState'] in rates:
                 print(
-                    f'[WARN] Several VAT rates fetched for {entry['memberState']}')
+                    f'[WARNING] Several VAT rates fetched for {entry['memberState']}')
             rates[entry['memberState']] = entry['rate']['value'] / 100
 
     return rates

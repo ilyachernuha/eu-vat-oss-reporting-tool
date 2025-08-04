@@ -25,6 +25,7 @@ def main():
     logging.info('Step 1/7: Getting VAT rates from Taxes in Europe Database...')
     try:
         vat_rates = fetch_vat_rates(reporting_date)
+        logging.info(f'Fetched VAT rates: {vat_rates}')
     except Exception as e:
         logging.error('Unable to get VAT rates from Taxes in Europe Database. Exiting.')
         sys.exit(1)
@@ -33,6 +34,7 @@ def main():
     logging.info('Step 2/7: Getting FOREX rates from ECB Data Portal API...')
     try:
         forex_rates = fetch_forex_rates(reporting_date)
+        logging.info(f'Fetched FOREX rates: {forex_rates}')
     except Exception as e:
         logging.error('Unable to get FOREX rates from ECB Data Portal API. Exiting.')
         sys.exit(1)
