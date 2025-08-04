@@ -21,8 +21,7 @@ def main():
         vat_rates = fetch_vat_rates(reporting_date)
         logger.info(f'Fetched VAT rates: {vat_rates}')
     except Exception as e:
-        logger.error(
-            'Unable to get VAT rates from Taxes in Europe Database. Exiting.')
+        logger.error(f'Unable to get VAT rates: {e}. Exiting.')
         sys.exit(1)
 
     # STEP 2: Load FOREX rates from ECB Data Portal API
@@ -31,7 +30,7 @@ def main():
         forex_rates = fetch_forex_rates(reporting_date)
         logger.info(f'Fetched FOREX rates: {forex_rates}')
     except Exception as e:
-        logger.error('Unable to get FOREX rates from ECB Data Portal API. Exiting.')
+        logger.error(f'Unable to get FOREX rates {e}. Exiting.')
         sys.exit(1)
 
     # STEP 3: Load reports
@@ -83,6 +82,11 @@ def load_reports(folder: str | Path) -> pd.DataFrame:
         except Exception as e:
             logger.error(f'Failed to load folder: {subfolder.name}: {e}')
             continue
+
+    if not dataframes:
+        logger.error('No valid reports loaded. Exiting.')
+        sys.exit(1)
+
     return pd.concat(dataframes, ignore_index=True)
 
 
