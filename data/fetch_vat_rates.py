@@ -1,6 +1,8 @@
 from typing import Dict
 from zeep import Client
 
+from logger import logger
+
 # This function might return wrong VAT rates in cases where
 # several different VAT rates are marked as 'STANDARD' and 'DEFAULT'.
 # Works fine for '2025-03-31' date.
@@ -28,8 +30,7 @@ def fetch_vat_rates(date: str) -> Dict[str, float]:
     for entry in response['vatRateResults']:
         if entry['type'] == 'STANDARD' and entry['rate']['type'] == 'DEFAULT':
             if entry['memberState'] in rates:
-                print(
-                    f'[WARNING] Several VAT rates fetched for {entry['memberState']}')
+                logger.warning(f'Several VAT rates fetched for {entry['memberState']}')
             rates[entry['memberState']] = entry['rate']['value'] / 100
 
     return rates

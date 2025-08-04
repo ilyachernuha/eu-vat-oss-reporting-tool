@@ -2,11 +2,11 @@ from pathlib import Path
 from typing import Dict
 import sys
 import pandas as pd
-import logging
 
 from config import config
 from data import fetch_forex_rates, fetch_vat_rates
 from loaders import loaders
+from logger import logger
 
 reporting_date = config['reporting_date']
 input_folder = config['input_folder']
@@ -14,56 +14,51 @@ report_name = config['report_name']
 
 reporting_date_obj = pd.to_datetime(reporting_date)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(levelname)s] %(message)s'
-)
-
 def main():
 
     # STEP 1: Load VAT rates from Taxes in Europe Database
-    logging.info('Step 1/7: Getting VAT rates from Taxes in Europe Database...')
+    logger.info('Step 1/7: Getting VAT rates from Taxes in Europe Database...')
     try:
         vat_rates = fetch_vat_rates(reporting_date)
-        logging.info(f'Fetched VAT rates: {vat_rates}')
+        logger.info(f'Fetched VAT rates: {vat_rates}')
     except Exception as e:
-        logging.error('Unable to get VAT rates from Taxes in Europe Database. Exiting.')
+        logger.error('Unable to get VAT rates from Taxes in Europe Database. Exiting.')
         sys.exit(1)
 
     # STEP 2: Load FOREX rates from ECB Data Portal API
-    logging.info('Step 2/7: Getting FOREX rates from ECB Data Portal API...')
+    logger.info('Step 2/7: Getting FOREX rates from ECB Data Portal API...')
     try:
         forex_rates = fetch_forex_rates(reporting_date)
-        logging.info(f'Fetched FOREX rates: {forex_rates}')
+        logger.info(f'Fetched FOREX rates: {forex_rates}')
     except Exception as e:
-        logging.error('Unable to get FOREX rates from ECB Data Portal API. Exiting.')
+        logger.error('Unable to get FOREX rates from ECB Data Portal API. Exiting.')
         sys.exit(1)
 
     # STEP 3: Load reports
-    logging.info('Step 3/7: Loading reports...')
+    logger.info('Step 3/7: Loading reports...')
     df = load_reports(input_folder)
 
     # STEP 4: Calculate VAT amounts
-    logging.info('Step 4/7: Calculating VAT...')
+    logger.info('Step 4/7: Calculating VAT...')
     df = calculate_vat(df, vat_rates)
 
     # STEP 5: Convert Gross and VAT amounts to EUR
-    logging.info('Step 5/7: Converting amounts to EUR...')
+    logger.info('Step 5/7: Converting amounts to EUR...')
     df = convert_to_eur(df, forex_rates)
 
     # STEP 6: Prepare final report
-    logging.info('Step 6/7: Generating the report...')
+    logger.info('Step 6/7: Generating the report...')
     df = generate_report(df)
 
     # STEP 7: Save generated report to Excel file
-    logging.info('Step 7/7: Saving the report to Excel file...')
+    logger.info('Step 7/7: Saving the report to Excel file...')
     try:
         write_report_to_excel(df, report_name)
     except Exception as e:
-        logging.error('Unable to save the report. Try closing the file and rerunning the script. Exiting.')
+        logger.error('Unable to save the report. Try closing the file and rerunning the script. Exiting.')
         sys.exit(1)
 
-    logging.info(f'Done! Report {report_name}.xlsx is ready!')
+    logger.info(f'Done! Report {report_name}.xlsx is ready!')
 
 
 def load_reports(folder: str | Path) -> pd.DataFrame:
@@ -73,7 +68,7 @@ def load_reports(folder: str | Path) -> pd.DataFrame:
     for subfolder in Path(folder).iterdir():
 
         if not subfolder.is_dir():
-            logging.warning(f'Skipping file: {subfolder.name}')
+            logger.warning(f'Skipping file: {subfolder.name}')
             continue
 
         report_type = subfolder.name
@@ -81,10 +76,10 @@ def load_reports(folder: str | Path) -> pd.DataFrame:
         loader = loaders.get(report_type)
 
         if not loader:
-            logging.warning(f'No loader found for: {report_type}')
+            logger.warning(f'No loader found for: {report_type}')
             continue
 
-        logging.info(f'Loading folder: {subfolder.name}')
+        logger.info(f'Loading folder: {subfolder.name}')
         dataframes.append(loader.load_folder(subfolder))
 
     res = pd.concat(dataframes, ignore_index=True)
@@ -104,7 +99,7 @@ def calculate_vat(df: pd.DataFrame, vat_rates: Dict[str, float]) -> pd.DataFrame
 
     missing = df.loc[rates.isna(), 'Country Code'].unique()
     if len(missing) > 0:
-        logging.warning(f'Missing VAT rates for: {', '.join(missing)}')
+        logger.warning(f'Missing VAT rates for: {', '.join(missing)}')
 
     df['VAT'] = (df['Gross Amount'] * rates / (1 + rates)).round(2)
 
@@ -118,7 +113,7 @@ def convert_to_eur(df: pd.DataFrame, forex_rates: Dict[str, float]) -> pd.DataFr
 
     missing = df.loc[rates.isna(), 'Currency'].unique()
     if len(missing) > 0:
-        logging.warning(f'Missing FOREX rates for: {', '.join(missing)}')
+        logger.warning(f'Missing FOREX rates for: {', '.join(missing)}')
 
     valid_rates = rates.replace(0, pd.NA)
 

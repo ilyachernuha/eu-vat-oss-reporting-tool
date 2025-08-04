@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-import logging
 from pathlib import Path
 import pandas as pd
+
+from logger import logger
 
 
 class BaseReportLoader(ABC):
@@ -17,14 +18,14 @@ class BaseReportLoader(ABC):
         for file in Path(folder).iterdir():
 
             if not file.is_file():
-                logging.warning(f'Skipping subdirectory: {file}')
+                logger.warning(f'Skipping subdirectory: {file}')
                 continue
 
             if file.suffix.lower() not in ['.csv', '.xlsx', '.xls']:
-                logging.warning(f'Skipping unsupported file: {file.name}')
+                logger.warning(f'Skipping unsupported file: {file.name}')
                 continue
 
-            logging.info(f'Loading report: {file.name}')
+            logger.info(f'Loading report: {file.name}')
             dataframes.append(self.load_report(Path(file)))
 
         return pd.concat(dataframes, ignore_index=True)
