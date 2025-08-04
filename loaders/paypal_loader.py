@@ -25,8 +25,7 @@ class PaypalActivityReportLoader(BaseReportLoader):
         filepath = Path(filepath)
 
         if not self.allowed_types:
-            logger.error(f'Mapping is empty - skipping PayPal report: {filepath.name}')
-            return pd.DataFrame()
+            raise ValueError('Mapping is empty')
 
         cols = ['Date', 'Type', 'Gross', 'Currency',
                 'Transaction Buyer Country Code']
