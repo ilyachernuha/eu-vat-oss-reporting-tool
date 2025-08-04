@@ -32,7 +32,7 @@ This Python script simplifies the preparation of VAT returns under the European 
 
 ### 1. Download the Script
 
-Download or clone the repository from [**HERE**](https://github.com/ilyachernuha/eu-vat-oss-reporting-tool).
+Clone the repository or download it from [**HERE**](https://github.com/ilyachernuha/eu-vat-oss-reporting-tool/archive/refs/heads/main.zip).
 
 ### 2. Organize Input Files
 
