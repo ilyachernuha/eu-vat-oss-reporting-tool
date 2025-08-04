@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 import pandas as pd
 
@@ -12,9 +13,20 @@ class PaypalActivityReportLoader(BaseReportLoader):
         'input/mappings/Transactions mapping - LOOK AT ME FIRST.xlsx')
 
     def __init__(self) -> None:
-        self.allowed_types = self.load_mapping(self.MAPPING_PATH)
+        try:
+            self.allowed_types = self.load_mapping(self.MAPPING_PATH)
+        except FileNotFoundError:
+            logging.warning(f'Mapping file for PayPal loader not found: {self.MAPPING_PATH.name}')
+            self.allowed_types = set()
 
     def load_report(self, filepath: str | Path) -> pd.DataFrame:
+
+        filepath = Path(filepath)
+
+        if not self.allowed_types:
+            logging.error(f'Mapping is empty - skipping PayPal report: {filepath.name}')
+            return pd.DataFrame()
+
         cols = ['Date', 'Type', 'Gross', 'Currency',
                 'Transaction Buyer Country Code']
 
