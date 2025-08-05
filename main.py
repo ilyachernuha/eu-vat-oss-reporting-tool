@@ -56,9 +56,10 @@ def main():
     # STEP 8: Save generated report to Excel file
     logger.info('Step 8/8: Saving the report to Excel file...')
     try:
-        write_report_to_excel(df, report_name)
+        write_report_to_excel(df, report_name, vat_rates, forex_rates)
     except Exception as e:
-        logger.error('Unable to save the report. Try closing the file and rerunning the script. Exiting.')
+        logger.error(
+            'Unable to save the report. Try closing the file and rerunning the script. Exiting.')
         sys.exit(1)
 
     logger.info(f'Done! Report {report_name}.xlsx is ready!')
@@ -128,8 +129,19 @@ def generate_report(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def write_report_to_excel(df: pd.DataFrame, report_name: str) -> None:
-    df.to_excel(f'{report_name}.xlsx', index=False)
+def write_report_to_excel(df: pd.DataFrame, report_name: str,
+                          vat_rates: Dict[str, float],
+                          forex_rates: Dict[str, float]) -> None:
+
+    with pd.ExcelWriter(f'{report_name}.xlsx') as writer:
+
+        df.to_excel(writer, sheet_name=report_name, index=False)
+
+        pd.DataFrame(vat_rates.items(), columns=['Country Code', 'VAT Rate'])\
+          .to_excel(writer, sheet_name='VAT Rates', index=False)
+
+        pd.DataFrame(forex_rates.items(), columns=['Currency', 'Rate'])\
+          .to_excel(writer, sheet_name='FOREX Rates', index=False)
 
 
 if __name__ == '__main__':
